@@ -71,14 +71,20 @@ export default function ChatbotInterface() {
         const parsed = JSON.parse(data);
         if (Array.isArray(parsed)) arr = parsed;
       } catch {
-        const match = data.match(/\[([^\]]+)\]/);
-        if (match) {
-          arr = match[1].split(",").map(s => s.replace(/[\'\"\[\]]/g, "").trim());
+        // 배열 형태의 문자열에서 항목 추출 (따옴표로 감싼 항목)
+        const matches = data.match(/(["'])(?:(?=(\\?))\2.)*?\1/g);
+        if (matches) {
+          arr = matches.map(s => s.replace(/^["'\[\]\{\}\(\)\s]+|["'\[\]\{\}\(\)\s]+$/g, ""));
         }
       }
     }
 
-    if (arr.length > 0) {
+    // 버튼에서 괄호, 따옴표, 공백 모두 제거, 빈 문자열 제외
+    const filteredArr = arr
+      .map(t => t.trim().replace(/^["'\[\]\{\}\(\)\s]+|["'\[\]\{\}\(\)\s]+$/g, ""))
+      .filter(t => t.length > 0);
+
+    if (filteredArr.length > 0) {
       setMessages(prev => [
         ...prev,
         {
@@ -87,7 +93,7 @@ export default function ChatbotInterface() {
           sender: "bot",
           timestamp: new Date(),
           type: "quick-replies",
-          data: { options: arr },
+          data: { options: filteredArr },
         },
       ]);
     } else {

@@ -32,7 +32,9 @@ export default function LensChatbot() {
         }
       }
     }
-    setButtons(arr);
+    // setButtons 하기 전에 '[' 또는 ']'만 있는 항목은 제외
+    const filteredArr = arr.filter(t => t.trim() !== '[' && t.trim() !== ']');
+    setButtons(filteredArr);
     setMessages(prev => [...prev, msg]);
   };
 

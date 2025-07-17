@@ -42,7 +42,6 @@ serve(async (req: Request) => {
     // 답변을 배열로 가공 (예: 문장 단위로 쪼개기)
     let answers: string[] = [];
     if (openaiData.choices && openaiData.choices.length > 0) {
-      // 예시: 마침표 기준으로 문장 분리
       answers = (openaiData.choices[0].message.content as string)
         .split(/\n|\. /)
         .map((s: string) => s.trim())
@@ -58,7 +57,13 @@ serve(async (req: Request) => {
       }
     });
   } catch (e) {
-    return new Response(JSON.stringify(["에러가 발생했습니다."]), {
+    let errorMsg = "에러가 발생했습니다.";
+    if (e instanceof Error) {
+      errorMsg = e.message;
+    } else if (typeof e === "string") {
+      errorMsg = e;
+    }
+    return new Response(JSON.stringify([errorMsg]), {
       headers: { 
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
