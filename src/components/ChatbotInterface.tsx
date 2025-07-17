@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, X, Eye, Package, Truck, CreditCard, HelpCircle, RotateCcw } from "lucide-react";
-import ChatMessage from "./ChatMessage";
-import QuickReplies from "./QuickReplies";
+import { Send, MessageCircle, RotateCcw, User } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 
 export interface Message {
@@ -12,14 +10,14 @@ export interface Message {
   sender: "user" | "bot";
   timestamp: Date;
   type?: "text" | "quick-replies";
-  data?: any;
+  data?: unknown;
 }
 
 export default function ChatbotInterface() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "안녕하세요! 👓 아이아이 AI 상담사입니다. 무엇을 도와드릴까요?",
+      text: "안녕하세요! 👓 렌즈 상담 챗봇입니다. 궁금한 점을 선택하거나 입력해 주세요!",
       sender: "bot",
       timestamp: new Date(),
       type: "text",
@@ -37,15 +35,7 @@ export default function ChatbotInterface() {
     scrollToBottom();
   }, [messages]);
 
-  const quickReplies = [
-    { text: "렌즈 추천받기", icon: Eye },
-    { text: "배송 문의", icon: Truck },
-    { text: "반품/교환", icon: Package },
-    { text: "결제 문의", icon: CreditCard },
-    { text: "기타 문의", icon: HelpCircle },
-  ];
-
-  // lens-gpt 호출 함수
+  // lens-gpt 호출 함수 (기존 로직 유지)
   const askLensGPT = async (msg: string) => {
     setIsTyping(true);
     const userMessage: Message = {
@@ -78,7 +68,6 @@ export default function ChatbotInterface() {
         }
       }
     }
-
     // 버튼에서 괄호, 따옴표, 공백 모두 제거, 빈 문자열 제외
     const filteredArr = arr
       .map(t => t.trim().replace(/^["'\[\]\{\}\(\)\s]+|["'\[\]\{\}\(\)\s]+$/g, ""))
@@ -119,7 +108,7 @@ export default function ChatbotInterface() {
   const handleReset = () => {
     const initialMessage: Message = {
       id: "1",
-      text: "안녕하세요! 👓 아이아이 AI 상담사입니다. 무엇을 도와드릴까요?",
+      text: "안녕하세요! 👓 렌즈 상담 챗봇입니다. 궁금한 점을 선택하거나 입력해 주세요!",
       sender: "bot",
       timestamp: new Date(),
       type: "text",
@@ -135,88 +124,92 @@ export default function ChatbotInterface() {
   const canReset = messages.length > 1;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 bg-white/20 rounded-full flex items-center justify-center">
-                <MessageCircle className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold">아이아이 AI 상담</h2>
-                <p className="text-blue-100 text-sm">실시간 상담 가능</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              {canReset && (
-                <button
-                  onClick={handleReset}
-                  className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                  title="처음부터 다시 시작"
-                >
-                  <RotateCcw className="w-5 h-5" />
-                </button>
-              )}
-              <button className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+    <div className="min-h-screen bg-[#f7f7fa] flex flex-col items-center py-2">
+      {/* Header */}
+      <div className="w-full max-w-lg flex items-center justify-between mb-3 px-4">
+        <div className="flex items-center gap-3">
+          <MessageCircle className="w-9 h-9 text-yellow-400" />
+          <span className="font-bold text-2xl text-gray-800">렌즈 상담 챗봇</span>
         </div>
+        {canReset && (
+          <button
+            onClick={handleReset}
+            className="p-3 text-gray-500 hover:text-yellow-500 rounded-full transition-colors"
+            title="처음부터 다시 시작"
+          >
+            <RotateCcw className="w-6 h-6" />
+          </button>
+        )}
+      </div>
 
-        {/* Chat Messages */}
-        <div className="h-96 overflow-y-auto p-6 space-y-4">
+      {/* Chat Area */}
+      <div className="w-full max-w-lg flex-1 flex flex-col bg-white rounded-3xl shadow-2xl p-6 overflow-hidden">
+        <div className="flex-1 overflow-y-auto space-y-6 pb-4" style={{ minHeight: 400 }}>
           {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
+            <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"} items-end gap-3`}>
+              {message.sender === "bot" && (
+                <div className="w-12 h-12 bg-yellow-300 flex items-center justify-center rounded-full shadow text-white font-bold">
+                  <MessageCircle className="w-7 h-7 text-yellow-700" />
+                </div>
+              )}
+              <div className={`rounded-3xl px-6 py-4 shadow text-lg max-w-[80%] whitespace-pre-line leading-relaxed font-medium ${message.sender === "user" ? "bg-yellow-100 text-gray-900 rounded-br-2xl" : "bg-gray-100 text-gray-800 rounded-bl-2xl"}`}>
+                {message.text}
+              </div>
+              {message.sender === "user" && (
+                <div className="w-12 h-12 bg-gray-300 flex items-center justify-center rounded-full shadow text-white font-bold">
+                  <User className="w-7 h-7 text-gray-600" />
+                </div>
+              )}
+            </div>
           ))}
           {isTyping && (
-            <div className="flex items-center space-x-2">
-              <div className="flex space-x-1">
-                <div className="w-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                <div className="w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+            <div className="flex items-center space-x-3">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                <div className="w-3 h-3 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
               </div>
-              <span className="text-sm text-gray-500">답변을 작성 중입니다...</span>
+              <span className="text-lg text-gray-500 font-medium">답변을 작성 중입니다...</span>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Quick Replies */}
-        {messages.length === 1 && (
-          <div className="px-6 pb-4">
-            <QuickReplies replies={quickReplies} onReply={handleQuickReply} />
+        {/* Quick Replies (카드/버튼형) */}
+        {messages[messages.length - 1]?.type === "quick-replies" && (messages[messages.length - 1]?.data as { options: string[] })?.options && (
+          <div className="flex flex-wrap gap-3 mt-4 justify-center">
+            {(messages[messages.length - 1]?.data as { options: string[] }).options.map((t: string, i: number) => (
+              <button
+                key={i}
+                onClick={() => handleQuickReply(t)}
+                className="bg-white border-2 border-yellow-400 rounded-2xl px-6 py-3 text-yellow-700 text-lg font-bold shadow hover:bg-yellow-100 transition-all min-w-[160px]"
+              >
+                {t}
+              </button>
+            ))}
           </div>
         )}
-        {/* 동적 퀵리플라이 */}
-        {messages[messages.length - 1]?.type === "quick-replies" && messages[messages.length - 1]?.data?.options && (
-          <div className="px-6 pb-4">
-            <QuickReplies replies={messages[messages.length - 1].data.options.map((t: string) => ({ text: t }))} onReply={handleQuickReply} />
-          </div>
-        )}
+      </div>
 
-        {/* Input */}
-        <div className="border-t border-gray-200 p-6">
-          <div className="flex space-x-4">
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSendMessage(inputText)}
-              placeholder="메시지를 입력하세요..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={isTyping}
-            />
-            <button
-              onClick={() => handleSendMessage(inputText)}
-              disabled={!inputText.trim() || isTyping}
-              className="px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <Send className="w-5 h-5" />
-            </button>
-          </div>
+      {/* Input (하단 고정) */}
+      <div className="w-full max-w-lg mt-5 px-4 sticky bottom-0 z-10">
+        <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-5 py-3">
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSendMessage(inputText)}
+            placeholder="메시지를 입력하세요..."
+            className="flex-1 px-3 py-2 border-none bg-transparent focus:outline-none text-lg font-medium"
+            disabled={isTyping}
+          />
+          <button
+            onClick={() => handleSendMessage(inputText)}
+            disabled={!inputText.trim() || isTyping}
+            className="px-6 py-3 bg-yellow-400 text-white rounded-full hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg"
+          >
+            <Send className="w-6 h-6" />
+          </button>
         </div>
       </div>
     </div>
